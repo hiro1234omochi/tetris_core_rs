@@ -809,6 +809,9 @@ impl TetrisManager {
                     (Ok(self.current_mino.mino_state), Some(line_clear))
                 };
             }
+            MovementCommand::Attacked(attacked_line) => {
+                self.attacked_lines_stock.push(attacked_line);
+            }
         };
         if let Some(r) = self.lock_check() {
             return r;
@@ -866,9 +869,6 @@ impl TetrisManager {
         }
         self.attacked_lines_stock.clear();
     }
-    pub fn stock_attacked_line(&mut self, attacked_line: AttackedLine) {
-        self.attacked_lines_stock.push(attacked_line);
-    }
     pub fn get_next_minos(&mut self, num: usize) -> NextsField {
         self.mino_queue.get_next_minos(num)
     }
@@ -899,7 +899,7 @@ pub enum MinoState {
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MovementCommand {
     Left,
     Right,
@@ -910,6 +910,7 @@ pub enum MovementCommand {
     Hold,
     Lock,
     HardDrop,
+    Attacked(AttackedLine),
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

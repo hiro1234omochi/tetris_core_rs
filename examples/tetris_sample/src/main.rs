@@ -86,10 +86,10 @@ fn main() {
                     Down => MovementCommand::Down,
                     Char(' ') => MovementCommand::HardDrop,
                     Char('r') => {
-                        tetris_manager.stock_attacked_line(AttackedLine {
+                        tetris_manager.command(MovementCommand::Attacked(AttackedLine {
                             hole_indexes: Some([random_range(0..DEFAULT_BOARD_SIZE.0)].to_vec()),
                             can_be_cleared: true,
-                        });
+                        }));
                         continue;
                     }
                     _ => {
