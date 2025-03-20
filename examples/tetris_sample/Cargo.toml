@@ -1,0 +1,10 @@
+[package]
+name = "tetris_sample"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tetris_core_rs = { path = "../..", features = ["serde"] }
+crossterm = "0.28.1"
+serde_json = "1.0.140"
+rand = "0.9.0"
