@@ -711,7 +711,7 @@ impl TetrisManager {
         let drawer = Mino::new_for_preview_next_mino(next_mino_type, next_pos.0, next_pos.1);
         drawer.draw_next_mino(&self.get_field_to_draw())
     }
-    fn lock_check(&mut self) -> Option<(Result<MinoState, ()>, Option<LineClear>)> {
+    fn lock_check(&mut self) -> Option<(Result<MinoState, ()>, Option<LineClear>, bool)> {
         if self.current_mino.should_be_locked && self.current_mino.mino_state != MinoState::AirBorne
         {
             return Some(self.command(MovementCommand::Lock));
@@ -721,53 +721,44 @@ impl TetrisManager {
     pub fn command(
         &mut self,
         movement_command: MovementCommand,
-    ) -> (Result<MinoState, ()>, Option<LineClear>) {
-        match movement_command {
-            MovementCommand::Left => {
-                self.current_mino.horizontal_move(
-                    HorizontalDirection::Left,
-                    &self.field,
-                    self.tetris_config.move_reset_limit,
-                );
-            }
-            MovementCommand::Right => {
-                self.current_mino.horizontal_move(
-                    HorizontalDirection::Right,
-                    &self.field,
-                    self.tetris_config.move_reset_limit,
-                );
-            }
-            MovementCommand::Down => {
-                self.current_mino.down(&self.field);
-            }
-            MovementCommand::RotateClockWise => {
-                self.current_mino.rotate(
-                    RotationType::Clockwise,
-                    &self.field,
-                    self.tetris_config.move_reset_limit,
-                );
-            }
-            MovementCommand::RotateCounterClockWise => {
-                self.current_mino.rotate(
-                    RotationType::CounterClockwise,
-                    &self.field,
-                    self.tetris_config.move_reset_limit,
-                );
-            }
-            MovementCommand::Rotate180 => {
-                self.current_mino.rotate(
-                    RotationType::Rotate180,
-                    &self.field,
-                    self.tetris_config.move_reset_limit,
-                );
-            }
+    ) -> (Result<MinoState, ()>, Option<LineClear>, bool) {
+        let is_succeeded = match movement_command {
+            MovementCommand::Left => self.current_mino.horizontal_move(
+                HorizontalDirection::Left,
+                &self.field,
+                self.tetris_config.move_reset_limit,
+            ),
+            MovementCommand::Right => self.current_mino.horizontal_move(
+                HorizontalDirection::Right,
+                &self.field,
+                self.tetris_config.move_reset_limit,
+            ),
+            MovementCommand::Down => self.current_mino.down(&self.field),
+            MovementCommand::RotateClockWise => self.current_mino.rotate(
+                RotationType::Clockwise,
+                &self.field,
+                self.tetris_config.move_reset_limit,
+            ),
+            MovementCommand::RotateCounterClockWise => self.current_mino.rotate(
+                RotationType::CounterClockwise,
+                &self.field,
+                self.tetris_config.move_reset_limit,
+            ),
+            MovementCommand::Rotate180 => self.current_mino.rotate(
+                RotationType::Rotate180,
+                &self.field,
+                self.tetris_config.move_reset_limit,
+            ),
             MovementCommand::Hold => {
                 if !self.has_held || self.tetris_config.can_hold_infinity {
                     self.has_held = true;
                     self.mino_queue.hold();
                     if self.spawn_current_mino().is_err() {
-                        return (Err(()), None);
+                        return (Err(()), None, true);
                     }
+                    true
+                } else {
+                    false
                 }
             }
             MovementCommand::HardDrop => {
@@ -804,19 +795,20 @@ impl TetrisManager {
 
                 self.release_stock_attacked_line();
                 return if self.spawn_current_mino().is_err() {
-                    (Err(()), Some(line_clear))
+                    (Err(()), Some(line_clear), true)
                 } else {
-                    (Ok(self.current_mino.mino_state), Some(line_clear))
+                    (Ok(self.current_mino.mino_state), Some(line_clear), true)
                 };
             }
             MovementCommand::Attacked(attacked_line) => {
                 self.attacked_lines_stock.push(attacked_line);
+                true
             }
         };
         if let Some(r) = self.lock_check() {
             return r;
         }
-        (Ok(self.current_mino.mino_state), None)
+        (Ok(self.current_mino.mino_state), None, is_succeeded)
     }
     pub fn spawn_current_mino(&mut self) -> Result<(), ()> {
         let next_pos = self.get_spawn_point(self.mino_queue.current);
