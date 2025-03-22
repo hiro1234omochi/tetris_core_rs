@@ -793,6 +793,30 @@ impl TetrisManager {
                         cleared_line_count += 1;
                     }
                 }
+                let is_spin = if self.current_mino.mino_type == MinoT {
+                    self.current_mino.is_last_move_spin
+                } else {
+                    if self.tetris_config.is_all_spin_enabled
+                        && !self.tetris_config.all_spin_considered_as_mini_spin
+                    {
+                        self.current_mino.is_last_move_spin
+                    } else {
+                        false
+                    }
+                };
+
+                let is_spin_mini = if self.current_mino.mino_type == MinoT {
+                    self.current_mino.is_last_move_mini_spin
+                } else {
+                    if self.tetris_config.is_all_spin_enabled
+                        && self.tetris_config.all_spin_considered_as_mini_spin
+                    {
+                        self.current_mino.is_last_move_spin
+                    } else {
+                        false
+                    }
+                };
+
                 let line_clear = LineClear {
                     cleared_line_count,
                     is_perfect: self
@@ -800,12 +824,8 @@ impl TetrisManager {
                         .iter()
                         .all(|row| row.iter().all(|cell| !cell.has_collision())),
                     mino_type: self.current_mino.mino_type,
-                    is_spin: (self.current_mino.mino_type == MinoT
-                        || self.tetris_config.is_all_spin_enabled)
-                        && self.current_mino.is_last_move_spin,
-                    is_spin_mini: (self.current_mino.mino_type != MinoT
-                        && self.tetris_config.all_spin_considered_as_mini_spin)
-                        || self.current_mino.is_last_move_mini_spin,
+                    is_spin,
+                    is_spin_mini,
                 };
                 self.mino_queue.next();
 
