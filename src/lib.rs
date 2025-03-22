@@ -453,7 +453,7 @@ impl Mino {
         if !self.does_rotate {
             offsets = &[(0, 0)]; //move_resetとspinの処理だけしたい
         }
-        for (offset_n, offset) in offsets.iter().enumerate() {
+        for offset in offsets.iter() {
             if self.replace(
                 self.x + offset.0,
                 self.y - offset.1,
@@ -496,8 +496,20 @@ impl Mino {
                         self.last_move_is_not_spin();
                     }
                 } else {
-                    self.last_move_is_not_spin();
-                    //もしかしたら実装するかもしれません。
+                    let offsets_all_spin = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+                    if offsets_all_spin.iter().all(|offset| {
+                        !self.can_replace(
+                            self.x + offset.0,
+                            self.y + offset.1,
+                            self.mino_direction,
+                            field,
+                        )
+                    }) {
+                        self.is_last_move_spin = true;
+                        self.is_last_move_mini_spin = false;
+                    } else {
+                        self.last_move_is_not_spin();
+                    }
                 }
                 return true;
             }
