@@ -660,6 +660,8 @@ pub struct TetrisManager {
     current_mino: Mino,
     attacked_lines_stock: AttackedLines,
     has_held: bool,
+    combo: usize,
+    b2b: usize,
 }
 impl Default for TetrisManager {
     fn default() -> Self {
@@ -678,6 +680,8 @@ impl Default for TetrisManager {
             tetris_config,
             attacked_lines_stock: AttackedLines::new(),
             has_held: false,
+            combo: 0,
+            b2b: 0,
         }
     }
 }
@@ -816,9 +820,20 @@ impl TetrisManager {
                         false
                     }
                 };
-
+                if cleared_line_count > 0 {
+                    self.combo += 1;
+                    if is_spin_mini || is_spin {
+                        self.b2b += 1;
+                    } else {
+                        self.b2b = 0;
+                    }
+                } else {
+                    self.combo = 0;
+                }
                 let line_clear = LineClear {
                     cleared_line_count,
+                    combo: self.combo,
+                    b2b: self.b2b,
                     is_perfect: self
                         .field
                         .iter()
@@ -945,6 +960,8 @@ pub enum MovementCommand {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LineClear {
     cleared_line_count: usize,
+    combo: usize,
+    b2b: usize,
     is_perfect: bool,
     mino_type: MinoType,
     is_spin: bool,
