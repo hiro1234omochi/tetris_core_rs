@@ -794,11 +794,7 @@ impl TetrisManager {
                     }
                 }
                 let line_clear = LineClear {
-                    cleared_line_count: if cleared_line_count == 0 {
-                        None
-                    } else {
-                        Some(cleared_line_count)
-                    },
+                    cleared_line_count,
                     is_perfect: self
                         .field
                         .iter()
@@ -928,7 +924,7 @@ pub enum MovementCommand {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct LineClear {
-    cleared_line_count: Option<usize>,
+    cleared_line_count: usize,
     is_perfect: bool,
     mino_type: MinoType,
     is_spin: bool,
