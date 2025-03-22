@@ -635,6 +635,8 @@ pub struct TetrisConfig {
     move_reset_limit: Option<usize>,
     appearance_position: (i64, i64), //MinoOのときだけy座標が-1される
     can_hold_infinity: bool,
+    is_all_spin_enabled: bool,
+    all_spin_considered_as_mini_spin: bool,
 }
 impl Default for TetrisConfig {
     fn default() -> Self {
@@ -642,6 +644,8 @@ impl Default for TetrisConfig {
             move_reset_limit: Some(15),
             appearance_position: (3, 19),
             can_hold_infinity: false,
+            is_all_spin_enabled: true,
+            all_spin_considered_as_mini_spin: true,
         }
     }
 }
@@ -800,8 +804,12 @@ impl TetrisManager {
                         .iter()
                         .all(|row| row.iter().all(|cell| !cell.has_collision())),
                     mino_type: self.current_mino.mino_type,
-                    is_spin: self.current_mino.is_last_move_spin,
-                    is_spin_mini: self.current_mino.is_last_move_mini_spin,
+                    is_spin: (self.current_mino.mino_type == MinoT
+                        || self.tetris_config.is_all_spin_enabled)
+                        && self.current_mino.is_last_move_spin,
+                    is_spin_mini: (self.current_mino.mino_type != MinoT
+                        && self.tetris_config.all_spin_considered_as_mini_spin)
+                        || self.current_mino.is_last_move_mini_spin,
                 };
                 self.mino_queue.next();
 
